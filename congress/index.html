@@ -489,11 +489,11 @@ function setupNewGame(isRestart = false) {
         messageDisplay.textContent = `RESTARTING at ${stages[currentStageIndex].name} with +1 Momentum!`;
     } else {
         // New session begins (Partisanship is handled by the initial click handler)
+        // Partisanship roll is now handled by rollPartisanshipAndStart
         momentumBonus = 0;
         lastFailedStageIndex = -1;
         currentStageIndex = 0; 
         attemptCount = 0; 
-        // NOTE: rollPartisanship() is handled by the calling function (rollPartisanshipAndStart)
     }
     
     updateResourceUI();
@@ -623,7 +623,7 @@ function handleStartButtonClick() {
     if (startButton.textContent === 'RE-ATTEMPT') {
         handleRestart(); 
     } else {
-        // Initial start of the game calls the new combined function
+        // Initial game start path
         rollPartisanshipAndStart(); 
     }
 }
@@ -682,3 +682,6 @@ document.addEventListener('DOMContentLoaded', initializeGame);
 if (document.readyState === 'complete') {
      initializeGame();
 }
+</script>
+</body>
+</html>
