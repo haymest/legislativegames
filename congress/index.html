@@ -1,6 +1,3 @@
-## US Congress Game: Complete `index.html` File
-
-```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -192,7 +189,7 @@
                 <div id="resource-status">
                     <p>Lobbying Power (IG Bonus): <span id="lobbying-uses">3</span> remaining.</p>
                     <p>Media Pressure (+1 to any roll): <span id="media-uses">3</span> remaining.</p>
-                    <p>IG Bonus Applied To: <span id="ig-chamber-display">None</span></p>
+                    <p>IG Bonus Applied To: <span id="ig-chamber-display">House: None | Senate: None</span></p>
                     <p class="small-text">(Rolls are 1d10. Difficulty is set by Partisanship at start.)</p>
                 </div>
                 
@@ -341,7 +338,10 @@ function rollPartisanship() {
     
     partisanshipModifier = result.modifier;
     partisanshipName = result.name;
-    partisanshipDisplay.textContent = `Partisanship: ${partisanshipName} (Modifier: ${partisanshipModifier >= 0 ? '+' : ''}${partisanshipModifier})`;
+    
+    if (partisanshipDisplay) {
+        partisanshipDisplay.textContent = `Partisanship: ${partisanshipName} (Modifier: ${partisanshipModifier >= 0 ? '+' : ''}${partisanshipModifier})`;
+    }
     messageDisplay.textContent = `Partisanship rolled a ${pRoll}. Difficulty set for the session!`;
 }
 
@@ -363,12 +363,14 @@ function updateResourceUI() {
     useSenateLobbyButton.disabled = lobbyUses === 0 || senateLobbyBonus > 0;
 }
 
-function handleMediaUse() {
-    if (mediaUses > 0 && mediaBonus === 0 && gameActive) {
-        mediaUses--;
-        mediaBonus = 1;
-        messageDisplay.textContent = `Media Pressure used! +1 applied to the NEXT roll only.`;
-        updateResourceUI();
+function updateActiveStageButton() {
+    Array.from(allStageButtons).forEach(btn => btn.disabled = true);
+
+    if (currentStageIndex >= 0 && currentStageIndex < stages.length) {
+        const activeBtn = allStageButtons[currentStageIndex];
+        if (activeBtn) {
+            activeBtn.disabled = false;
+        }
     }
 }
 
@@ -419,7 +421,7 @@ function fullGameReset() {
     igChamber = '';
     attemptCount = 0;
     partisanshipModifier = 0;
-    partisanshipName = '';
+    partisanshipName = ''; 
     
     // Reset UI elements
     partisanshipDisplay.textContent = 'Rolling...';
@@ -550,8 +552,6 @@ function handleStageRoll(event) {
     }
 
     // Penalty Condition (Check if the modified roll is equal to the specific penalty number)
-    // NOTE: This logic now uses the MODIFIED roll for the penalty condition for simplicity,
-    // reflecting that the penalty occurs *after* modifiers are applied.
     if (currentStage.penaltyRolls && currentStage.penaltyRolls.includes(modifiedRoll)) {
         // Penalty logic for H4/S4 Floor Debate
         if (currentStage.id === 'stage-H4' || currentStage.id === 'stage-S4') {
@@ -602,6 +602,7 @@ function initializeGame() {
     gameContent = document.getElementById('game-content');
     victoryScreen = document.getElementById('victory-screen');
 
+    partisanshipDisplay = document.getElementById('partisanship-display'); 
     rollResultDisplay = document.getElementById('rollResult');
     messageDisplay = document.getElementById('message');
     currentStageDisplay = document.getElementById('current-stage-display');
@@ -609,7 +610,6 @@ function initializeGame() {
     allStageButtons = document.getElementsByClassName('stageRollButton');
     momentumDisplay = document.getElementById('momentum-display');
     attemptCountDisplay = document.getElementById('attempt-count-display');
-    partisanshipDisplay = document.getElementById('partisanship-display'); 
 
     resourcesDisplay.lobbyUses = document.getElementById('lobbying-uses');
     resourcesDisplay.mediaUses = document.getElementById('media-uses');
@@ -619,9 +619,9 @@ function initializeGame() {
     startButton.addEventListener('click', handleStartButtonClick); 
     victoryNewGameButton.addEventListener('click', fullGameReset);
     
-    // Attach the simplified lobbying handlers
-    useHouseLobbyButton.addEventListener('click', () => handleLobbyUse('H'));
-    useSenateLobbyButton.addEventListener('click', () => handleLobbyUse('S'));
+    // FIX: Attach the simplified lobbying handlers directly (resolves ReferenceError)
+    useHouseLobbyButton.addEventListener('click', lobbyHouse);
+    useSenateLobbyButton.addEventListener('click', lobbySenate);
     
     useMediaPressureButton.addEventListener('click', handleMediaUse);
     
@@ -644,4 +644,6 @@ document.addEventListener('DOMContentLoaded', initializeGame);
 if (document.readyState === 'complete') {
      initializeGame();
 }
-```
+</script>
+</body>
+</html>
