@@ -374,6 +374,28 @@ function updateActiveStageButton() {
     }
 }
 
+function handleLobbyUse(chamber) {
+    if (lobbyUses > 0 && houseLobbyBonus === 0 && senateLobbyBonus === 0 && gameActive) {
+        lobbyUses--;
+        if (chamber === 'H') {
+            houseLobbyBonus = 1;
+        } else {
+            senateLobbyBonus = 1;
+        }
+        messageDisplay.textContent = `Lobbying Power used! Permanently applying +1 to ${chamber === 'H' ? 'House' : 'Senate'} rolls.`;
+        updateResourceUI();
+    }
+}
+
+function handleMediaUse() {
+    if (mediaUses > 0 && mediaBonus === 0 && gameActive) {
+        mediaUses--;
+        mediaBonus = 1;
+        messageDisplay.textContent = `Media Pressure used! +1 applied to the NEXT roll only.`;
+        updateResourceUI();
+    }
+}
+
 function advanceStage() {
     if (currentStageIndex >= 0) {
         document.getElementById(stages[currentStageIndex].id).classList.remove('current-stage');
@@ -437,6 +459,22 @@ function fullGameReset() {
     setupNewGame(false);
 }
 
+// NEW FUNCTION: Handles the partisanship roll and smooth start
+function rollPartisanshipAndStart() {
+    // 1. Roll Partisanship
+    rollPartisanship(); 
+    
+    // 2. Hide Start Button and Launch Game State
+    startButton.classList.add('hidden'); 
+    gameActive = true;
+    document.querySelectorAll('.stage').forEach(el => el.classList.remove('current-stage'));
+    gameStatusDisplay.textContent = 'In Progress';
+    
+    // 3. Begin at first stage
+    goToStage(0); 
+}
+
+
 function setupNewGame(isRestart = false) {
     gameActive = true;
     
@@ -450,13 +488,12 @@ function setupNewGame(isRestart = false) {
         lastFailedStageIndex = -1; 
         messageDisplay.textContent = `RESTARTING at ${stages[currentStageIndex].name} with +1 Momentum!`;
     } else {
-        // New session begins: Roll for Partisanship
-        rollPartisanship();
+        // New session begins (Partisanship is handled by the initial click handler)
         momentumBonus = 0;
         lastFailedStageIndex = -1;
         currentStageIndex = 0; 
         attemptCount = 0; 
-        messageDisplay.textContent = `Partisanship set. Begin the session!`;
+        // NOTE: rollPartisanship() is handled by the calling function (rollPartisanshipAndStart)
     }
     
     updateResourceUI();
@@ -586,7 +623,8 @@ function handleStartButtonClick() {
     if (startButton.textContent === 'RE-ATTEMPT') {
         handleRestart(); 
     } else {
-        fullGameReset(); 
+        // Initial start of the game calls the new combined function
+        rollPartisanshipAndStart(); 
     }
 }
 
@@ -619,9 +657,9 @@ function initializeGame() {
     startButton.addEventListener('click', handleStartButtonClick); 
     victoryNewGameButton.addEventListener('click', fullGameReset);
     
-    // FIX: Attach the simplified lobbying handlers directly (resolves ReferenceError)
-    useHouseLobbyButton.addEventListener('click', lobbyHouse);
-    useSenateLobbyButton.addEventListener('click', lobbySenate);
+    // Attach the simplified lobbying handlers
+    useHouseLobbyButton.addEventListener('click', () => handleLobbyUse('H'));
+    useSenateLobbyButton.addEventListener('click', () => handleLobbyUse('S'));
     
     useMediaPressureButton.addEventListener('click', handleMediaUse);
     
@@ -644,6 +682,3 @@ document.addEventListener('DOMContentLoaded', initializeGame);
 if (document.readyState === 'complete') {
      initializeGame();
 }
-</script>
-</body>
-</html>
